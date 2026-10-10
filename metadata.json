@@ -1,0 +1,6 @@
+{
+  "name": "Aaima ASMR Eating Store",
+  "description": "A cute, colorful 2D mobile game featuring interactive cooking, ASMR eating sounds, adorable girl characters, and a magical rainbow world.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(1.5deg); }
+}
+
+@keyframes butterflyFly {
+  0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  25% { transform: translate(30px, -20px) scale(1.05) rotate(6deg); }
+  50% { transform: translate(65px, -5px) scale(0.95) rotate(-4deg); }
+  75% { transform: translate(95px, -25px) scale(1.02) rotate(5deg); }
+  100% { transform: translate(130px, -8px) scale(1) rotate(0deg); }
+}
+
+@keyframes wingFlap {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(0.2); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6)); }
+  50% { filter: drop-shadow(0 0 16px rgba(244, 114, 182, 0.8)); }
+}
+
+@keyframes steamRise {
+  0% { transform: translateY(0) scale(0.8); opacity: 0.8; }
+  50% { transform: translateY(-16px) scale(1.2); opacity: 0.5; }
+  100% { transform: translateY(-32px) scale(1.5); opacity: 0; }
+}
+
+@keyframes sizzleShake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-1.5px, 1.5px); }
+  40% { transform: translate(1.5px, -1px); }
+  60% { transform: translate(-1px, -1px); }
+  80% { transform: translate(1px, 1px); }
+}
+
+@keyframes chewMotion {
+  0%, 100% { transform: scaleY(1) translateY(0); }
+  50% { transform: scaleY(0.92) translateY(2px); }
+}
+
+.animate-float {
+  animation: floatSlow 3.5s ease-in-out infinite;
+}
+
+.animate-steam {
+  animation: steamRise 2s ease-out infinite;
+}
+
+.animate-sizzle {
+  animation: sizzleShake 0.15s infinite;
+}
+
+.animate-chew {
+  animation: chewMotion 0.28s ease-in-out infinite;
+}
+
+.rainbow-gradient {
+  background: linear-gradient(135deg, #fbcfe8 0%, #ddd6fe 25%, #bae6fd 50%, #bbf7d0 75%, #fef08a 100%);
+}
+
+.rainbow-text {
+  background: linear-gradient(90deg, #ec4899, #8b5cf6, #3b82f6, #10b981, #f59e0b, #ec4899);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: rainbowShift 4s linear infinite;
+}
+
+@keyframes rainbowShift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
