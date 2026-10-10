@@ -13,10 +13,11 @@ interface ButterflyData {
 }
 
 const DEFAULT_BUTTERFLIES: ButterflyData[] = [
-  { id: 1, initialX: 10, initialY: 18, color1: '#f472b6', color2: '#fb7185', size: 36, speed: 14, delay: 0 },
-  { id: 2, initialX: 75, initialY: 28, color1: '#38bdf8', color2: '#818cf8', size: 32, speed: 18, delay: 2 },
-  { id: 3, initialX: 40, initialY: 60, color1: '#fbbf24', color2: '#f472b6', size: 28, speed: 16, delay: 4 },
-  { id: 4, initialX: 85, initialY: 72, color1: '#c084fc', color2: '#ec4899', size: 30, speed: 20, delay: 1 },
+  { id: 1, initialX: 8, initialY: 16, color1: '#f472b6', color2: '#fb7185', size: 38, speed: 13, delay: 0 },
+  { id: 2, initialX: 78, initialY: 26, color1: '#38bdf8', color2: '#818cf8', size: 34, speed: 17, delay: 2 },
+  { id: 3, initialX: 38, initialY: 58, color1: '#fbbf24', color2: '#f472b6', size: 30, speed: 15, delay: 4 },
+  { id: 4, initialX: 82, initialY: 68, color1: '#c084fc', color2: '#ec4899', size: 32, speed: 19, delay: 1 },
+  { id: 5, initialX: 18, initialY: 80, color1: '#4ade80', color2: '#2dd4bf', size: 28, speed: 16, delay: 3 },
 ];
 
 export const ButterflyLayer: React.FC = () => {
@@ -30,10 +31,10 @@ export const ButterflyLayer: React.FC = () => {
       x: rect.left + rect.width / 2,
       y: rect.top + rect.height / 2,
     };
-    setSparkles((prev) => [...prev.slice(-8), newSparkle]);
+    setSparkles((prev) => [...prev.slice(-6), newSparkle]);
     setTimeout(() => {
       setSparkles((prev) => prev.filter((s) => s.id !== newSparkle.id));
-    }, 900);
+    }, 850);
   };
 
   return (
@@ -55,47 +56,59 @@ export const ButterflyLayer: React.FC = () => {
             style={{
               width: `${bf.size}px`,
               height: `${bf.size}px`,
-              animation: 'wingFlap 0.35s ease-in-out infinite alternate',
+              animation: 'wingFlap 0.32s ease-in-out infinite alternate',
             }}
           >
-            <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm filter">
-              {/* Left Top Wing */}
+            <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
+              <defs>
+                <linearGradient id={`bfGrad_${bf.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.8" />
+                  <stop offset="40%" stopColor={bf.color1} />
+                  <stop offset="100%" stopColor={bf.color2} />
+                </linearGradient>
+              </defs>
+
+              {/* Upper Left Wing */}
               <path
-                d="M 50,50 C 35,10 10,15 15,45 C 20,60 45,55 50,50 Z"
-                fill={bf.color1}
+                d="M 50,50 C 32,8 6,14 12,46 C 18,62 44,56 50,50 Z"
+                fill={`url(#bfGrad_${bf.id})`}
                 stroke="#ffffff"
-                strokeWidth="2"
+                strokeWidth="1.5"
               />
-              {/* Left Bottom Wing */}
+              {/* Lower Left Wing */}
               <path
-                d="M 50,50 C 30,55 20,80 35,88 C 45,90 48,65 50,50 Z"
+                d="M 50,50 C 28,56 16,82 34,90 C 46,92 48,66 50,50 Z"
                 fill={bf.color2}
                 stroke="#ffffff"
-                strokeWidth="2"
+                strokeWidth="1.5"
               />
-              {/* Right Top Wing */}
+              {/* Upper Right Wing */}
               <path
-                d="M 50,50 C 65,10 90,15 85,45 C 80,60 55,55 50,50 Z"
-                fill={bf.color1}
+                d="M 50,50 C 68,8 94,14 88,46 C 82,62 56,56 50,50 Z"
+                fill={`url(#bfGrad_${bf.id})`}
                 stroke="#ffffff"
-                strokeWidth="2"
+                strokeWidth="1.5"
               />
-              {/* Right Bottom Wing */}
+              {/* Lower Right Wing */}
               <path
-                d="M 50,50 C 70,55 80,80 65,88 C 55,90 52,65 50,50 Z"
+                d="M 50,50 C 72,56 84,82 66,90 C 54,92 52,66 50,50 Z"
                 fill={bf.color2}
                 stroke="#ffffff"
-                strokeWidth="2"
+                strokeWidth="1.5"
               />
-              {/* Wing Inner Dots */}
-              <circle cx="32" cy="35" r="4" fill="#ffffff" opacity="0.9" />
-              <circle cx="68" cy="35" r="4" fill="#ffffff" opacity="0.9" />
-              <circle cx="38" cy="72" r="3" fill="#ffffff" opacity="0.8" />
-              <circle cx="62" cy="72" r="3" fill="#ffffff" opacity="0.8" />
-              {/* Butterfly Body & Antennae */}
-              <ellipse cx="50" cy="50" rx="3.5" ry="16" fill="#475569" />
-              <path d="M 49,36 Q 44,22 38,20" stroke="#475569" strokeWidth="2" fill="none" strokeLinecap="round" />
-              <path d="M 51,36 Q 56,22 62,20" stroke="#475569" strokeWidth="2" fill="none" strokeLinecap="round" />
+
+              {/* Delicate Wing Patterns / Veins */}
+              <path d="M 50,50 Q 30,30 20,40" stroke="#ffffff" strokeWidth="1" fill="none" opacity="0.8" />
+              <path d="M 50,50 Q 70,30 80,40" stroke="#ffffff" strokeWidth="1" fill="none" opacity="0.8" />
+              <circle cx="30" cy="35" r="3.5" fill="#ffffff" opacity="0.9" />
+              <circle cx="70" cy="35" r="3.5" fill="#ffffff" opacity="0.9" />
+              <circle cx="36" cy="72" r="2.5" fill="#ffffff" opacity="0.8" />
+              <circle cx="64" cy="72" r="2.5" fill="#ffffff" opacity="0.8" />
+
+              {/* Slender Body & Antennae */}
+              <ellipse cx="50" cy="50" rx="3" ry="17" fill="#334155" />
+              <path d="M 49,35 Q 42,20 36,18" stroke="#334155" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+              <path d="M 51,35 Q 58,20 64,18" stroke="#334155" strokeWidth="1.5" fill="none" strokeLinecap="round" />
             </svg>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import confetti from 'canvas-confetti';
 import { FoodItem, GirlCharacter } from '../../types/game';
 import { CuteGirl, GirlExpression } from '../character/CuteGirl';
@@ -9,9 +9,9 @@ import {
   RotateCcw,
   Sparkles,
   Trophy,
-  Coins,
-  Heart,
   Volume2,
+  Utensils,
+  Flame,
 } from 'lucide-react';
 
 interface Props {
@@ -34,24 +34,34 @@ export const EatingStage: React.FC<Props> = ({
   const totalBites = food.totalBites || 5;
   const [bitesLeft, setBitesLeft] = useState<number>(totalBites);
   const [girlExpression, setGirlExpression] = useState<GirlExpression>('idle');
+  const [isLiftingBite, setIsLiftingBite] = useState<boolean>(false);
   const [isBiting, setIsBiting] = useState<boolean>(false);
-  const [reactionText, setReactionText] = useState<string>('Tap the dish to feed me! 💕');
+  const [reactionText, setReactionText] = useState<string>('Tap the dish or button to feed me! 💕');
   const [mealFinished, setMealFinished] = useState<boolean>(false);
   const [floatingParticles, setFloatingParticles] = useState<{ id: number; text: string; x: number; y: number }[]>([]);
 
-  // Cute quotes per food category
+  const isNoodle = food.category === 'noodles';
+  const isSpicyRed = isNoodle && (food.id.includes('spicy') || food.id.includes('fire') || food.id.includes('chili'));
+  const isBrownNoodle = isNoodle && (food.id.includes('brown') || food.id.includes('sesame'));
+
   const getHappyQuote = () => {
+    if (isSpicyRed) {
+      return ['Super fiery and so flavorful! 🌶️', 'Mmm! The spicy red chili kicks in! 🔥', 'So addictive, I love spicy food! 💕'][Math.floor(Math.random() * 3)];
+    }
+    if (isBrownNoodle) {
+      return ['Rich dark savory soy glaze! 🥢', 'Deep, fragrant black bean flavor! ✨', 'So silky and chewy! 🍜'][Math.floor(Math.random() * 3)];
+    }
     switch (food.category) {
       case 'noodles':
-        return ['So springy and delicious! 🍜', 'Best noodles ever! ✨', 'Mmm, that spicy kick! 🌶️', 'Super satisfying slurp! 💕'][Math.floor(Math.random() * 4)];
+        return ['The springy noodles are heavenly! 🍜', 'Best ramen in the world! ✨', 'Super satisfying slurp! 💕'][Math.floor(Math.random() * 3)];
       case 'snacks':
-        return ['The crunch is so crisp! 🥔', 'Unbelievable ASMR sound! 🎧', 'Melt-in-mouth yummy! ✨', 'So addictive! 🍿'][Math.floor(Math.random() * 4)];
+        return ['That crunch is so crisp! 🥔', 'Unbelievable ASMR sound! 🎧', 'Melt-in-mouth goodness! ✨'][Math.floor(Math.random() * 3)];
       case 'fastfood':
-        return ['Juicy and so flavorful! 🍔', 'Golden crispy goodness! 🍗', 'Cheesy perfection! 🧀', 'So satisfying! 🤤'][Math.floor(Math.random() * 4)];
+        return ['Juicy and so flavorful! 🍔', 'Golden crispy perfection! 🍗', 'Cheesy goodness! 🧀'][Math.floor(Math.random() * 3)];
       case 'desserts':
-        return ['Sweet, fluffy heaven! 🍰', 'Melts like a dream! 🍓', 'Pure sugar happiness! 💖', 'So soft and creamy! 🧁'][Math.floor(Math.random() * 4)];
+        return ['Fluffy, sweet dream! 🍰', 'Melts like silk on my tongue! 🍓', 'Pure dessert bliss! 💖'][Math.floor(Math.random() * 3)];
       case 'drinks':
-        return ['So refreshing and cool! 🧋', 'Love the boba pearls! 🍹', 'Fruity and sweet! 🍓', 'Ahhh, so refreshing! 🥤'][Math.floor(Math.random() * 4)];
+        return ['So frosty and refreshing! 🧋', 'Love the chewy boba pearls! 🍹', 'Fruity and sweet! 🍓'][Math.floor(Math.random() * 3)];
       default:
         return 'Yummy in my tummy! 💕';
     }
@@ -61,65 +71,105 @@ export const EatingStage: React.FC<Props> = ({
     if (isBiting || bitesLeft <= 0 || mealFinished) return;
 
     setIsBiting(true);
+    setIsLiftingBite(true);
+
+    // 1. Anticipation: Girl opens mouth wide ("Aaahh~")
     setGirlExpression('mouth_open');
-    setReactionText('Aaahh~ 👄');
+    setReactionText(isNoodle ? 'Lifting noodles... Aaahh~ 👄' : 'Aaahh~ 👄');
 
-    // Slight anticipation delay
+    // 2. Feed bite moves towards mouth
     setTimeout(() => {
-      // Play ASMR audio
-      soundEngine.playAsmrSound(food.soundType);
+      // Play Food-Specific ASMR audio
+      if (isSpicyRed) {
+        soundEngine.playNoodleSlurp('spicy');
+      } else if (isBrownNoodle) {
+        soundEngine.playNoodleSlurp('brown');
+      } else if (isNoodle) {
+        soundEngine.playNoodleSlurp('mild');
+      } else {
+        soundEngine.playAsmrSound(food.soundType);
+      }
 
-      // Decrement portion
+      // Decrement food portion visibly
       const nextBites = bitesLeft - 1;
       setBitesLeft(nextBites);
 
-      // Chewing animation
-      setGirlExpression('chewing');
-      setReactionText('Nom nom nom... 😋');
+      // Slurping / Crunching state
+      if (isNoodle) {
+        setGirlExpression('slurping');
+        setReactionText('Slurrrrpppp! 🍜');
+      } else {
+        setGirlExpression('chewing');
+        setReactionText('Crunch crunch nom nom... 😋');
+      }
 
-      // Spawn floating hearts
+      // Floating heart particle
       const newParticle = {
         id: Date.now(),
-        text: Math.random() > 0.5 ? '💖' : '✨',
-        x: 45 + Math.random() * 10,
-        y: 40 + Math.random() * 10,
+        text: Math.random() > 0.4 ? '💖' : '✨',
+        x: 44 + Math.random() * 12,
+        y: 38 + Math.random() * 10,
       };
       setFloatingParticles((prev) => [...prev, newParticle]);
 
-      // After chewing ends
+      // 3. Chewing phase
       setTimeout(() => {
-        setIsBiting(false);
-        setFloatingParticles((prev) => prev.filter((p) => p.id !== newParticle.id));
+        setIsLiftingBite(false);
+        setGirlExpression('chewing');
+        setReactionText('Masticating happily... 😋');
 
-        if (nextBites <= 0) {
-          // Finished meal celebration!
-          setMealFinished(true);
-          setGirlExpression('super_happy');
-          setReactionText('Oishii! All done! That was incredible! 🎉');
-          soundEngine.playFanfare();
-          soundEngine.playGirlGiggle();
-          confetti({
-            particleCount: 80,
-            spread: 70,
-            origin: { y: 0.6 },
-          });
-          onFinishMeal(food);
-        } else {
-          setGirlExpression('yum_satisfaction');
-          setReactionText(getHappyQuote());
-          setTimeout(() => {
-            setGirlExpression('idle');
-          }, 1200);
-        }
-      }, 1000);
-    }, 280);
+        // 4. Swallow phase
+        setTimeout(() => {
+          soundEngine.playGirlYum();
+
+          // If spicy noodles, cute heat fanning reaction!
+          if (isSpicyRed && Math.random() > 0.3) {
+            setGirlExpression('spicy_reaction');
+            setReactionText('Haaah! That chili has a spicy kick! 🔥');
+            setTimeout(() => {
+              finishBiteCycle(nextBites);
+            }, 1200);
+          } else {
+            setGirlExpression('yum_satisfaction');
+            setReactionText(getHappyQuote());
+            setTimeout(() => {
+              finishBiteCycle(nextBites);
+            }, 1000);
+          }
+        }, 800);
+      }, 700);
+    }, 350);
+  };
+
+  const finishBiteCycle = (remainingBites: number) => {
+    setIsBiting(false);
+    setFloatingParticles([]);
+
+    if (remainingBites <= 0) {
+      // Finished Meal Celebration
+      setMealFinished(true);
+      setGirlExpression('super_happy');
+      setReactionText('Oishii! Finished every single drop! That was amazing! 🎉');
+      soundEngine.playFanfare();
+      soundEngine.playGirlGiggle();
+      confetti({
+        particleCount: 85,
+        spread: 75,
+        origin: { y: 0.6 },
+      });
+      onFinishMeal(food);
+    } else {
+      setGirlExpression('idle');
+    }
   };
 
   const handleReplayMeal = () => {
     setBitesLeft(totalBites);
     setMealFinished(false);
+    setIsLiftingBite(false);
+    setIsBiting(false);
     setGirlExpression('idle');
-    setReactionText('Let’s eat again! So tasty! 😋');
+    setReactionText('Fresh portion prepared! Let’s eat again! 😋');
     soundEngine.playClick();
   };
 
@@ -135,34 +185,39 @@ export const EatingStage: React.FC<Props> = ({
           <span>Menu</span>
         </button>
 
-        {/* Meal Info Badge */}
-        <div className="text-center bg-white/80 px-3 py-1 rounded-full border border-pink-200 shadow-xs backdrop-blur-xs">
-          <div className="text-xs font-bold text-pink-700 truncate max-w-[150px]">
+        {/* Dish Badge */}
+        <div className="text-center bg-white/85 px-3 py-1 rounded-full border border-pink-200 shadow-xs backdrop-blur-xs flex items-center gap-1.5">
+          {isSpicyRed ? (
+            <Flame className="w-3.5 h-3.5 text-red-500 fill-red-500" />
+          ) : (
+            <Utensils className="w-3.5 h-3.5 text-purple-500" />
+          )}
+          <span className="text-xs font-bold text-purple-900 truncate max-w-[150px]">
             {food.name}
-          </div>
+          </span>
         </div>
 
-        {/* Replay Sound Button */}
+        {/* Refill Button */}
         <button
           onClick={handleReplayMeal}
           className="flex items-center gap-1 px-3 py-1.5 bg-white/90 hover:bg-white text-pink-600 text-xs font-bold rounded-full shadow-xs border border-pink-200 transition-all active:scale-95"
-          title="Restart Meal to hear sounds again"
+          title="Refill dish to hear ASMR sounds again"
         >
           <RotateCcw className="w-3.5 h-3.5" />
           <span>Refill</span>
         </button>
       </div>
 
-      {/* Eating Scene Center */}
+      {/* Main Dining Stage */}
       <div className="flex-1 flex flex-col items-center justify-center relative z-10 w-full max-w-md mx-auto my-auto">
-        {/* Girl Reaction Bubble */}
-        <div className="bg-white/95 px-4 py-2 rounded-2xl rounded-bl-none border border-pink-300 shadow-md mb-2 animate-float max-w-xs text-center">
+        {/* Dialogue Bubble */}
+        <div className="bg-white/95 px-4 py-2 rounded-2xl rounded-bl-none border border-pink-300 shadow-md mb-2 animate-float max-w-xs text-center backdrop-blur-xs">
           <p className="text-xs font-extrabold text-purple-800">
             {reactionText}
           </p>
         </div>
 
-        {/* Seated Girl Display */}
+        {/* Seated Girl Behind Table */}
         <div className="relative flex flex-col items-center">
           <CuteGirl
             character={selectedCharacter}
@@ -174,10 +229,9 @@ export const EatingStage: React.FC<Props> = ({
 
         {/* Dining Table Surface */}
         <div className="w-full -mt-10 bg-gradient-to-r from-pink-200 via-purple-100 to-pink-200 rounded-3xl p-4 shadow-xl border-t-4 border-pink-300 flex flex-col items-center relative">
-          {/* Tablecloth Pattern Overlay */}
           <div className="absolute inset-0 rounded-3xl bg-[radial-gradient(#ec4899_1.5px,transparent_1.5px)] [background-size:20px_20px] opacity-10 pointer-events-none" />
 
-          {/* Table Decor Companion (e.g. plushie or flower) */}
+          {/* Table Decors */}
           {tableDecorId === 'decor_cherry_blossom' && (
             <div className="absolute left-4 top-2 text-2xl animate-float">
               🌸
@@ -193,38 +247,45 @@ export const EatingStage: React.FC<Props> = ({
           <div
             onClick={handleBite}
             className="cursor-pointer group relative flex flex-col items-center transition-transform hover:scale-105 active:scale-95"
-            title="Tap to feed a delicious bite!"
+            title="Tap dish to feed a delicious portion!"
           >
             <FoodArt
               food={food}
               bitesRemaining={bitesLeft}
               size="lg"
+              isLiftingBite={isLiftingBite}
             />
 
             {!mealFinished && (
               <div className="mt-1 flex items-center gap-1.5 bg-white/90 text-pink-600 text-xs font-extrabold px-3 py-1 rounded-full shadow-md border border-pink-300 group-hover:bg-pink-50">
                 <Volume2 className="w-3.5 h-3.5" />
-                <span>Tap to Feed Bite!</span>
+                <span>
+                  {isNoodle ? 'Tap to Slurp Noodles! 🍜' : 'Tap to Feed Bite! 🎧'}
+                </span>
               </div>
             )}
           </div>
 
-          {/* Meal Progress Tracker */}
+          {/* Remaining Portion Tracker */}
           <div className="w-full max-w-xs mt-3">
             <div className="flex justify-between items-center text-xs font-bold text-purple-800 mb-1">
               <span>Portion Remaining</span>
               <span>
-                {bitesLeft} / {totalBites} Bites
+                {bitesLeft} / {totalBites} {isNoodle ? 'Slurps' : 'Bites'}
               </span>
             </div>
-            {/* Bite indicator dots */}
+            {/* Dot Progress Indicators */}
             <div className="flex gap-1.5 justify-center">
               {Array.from({ length: totalBites }).map((_, idx) => (
                 <div
                   key={idx}
                   className={`h-2.5 flex-1 rounded-full transition-all duration-300 ${
                     idx < bitesLeft
-                      ? 'bg-pink-500 shadow-xs'
+                      ? isSpicyRed
+                        ? 'bg-red-500 shadow-xs'
+                        : isBrownNoodle
+                        ? 'bg-amber-800 shadow-xs'
+                        : 'bg-pink-500 shadow-xs'
                       : 'bg-pink-200 opacity-50'
                   }`}
                 />
@@ -245,7 +306,7 @@ export const EatingStage: React.FC<Props> = ({
         </div>
       ))}
 
-      {/* Bottom Action Footer */}
+      {/* Action Footer */}
       <div className="w-full max-w-md mx-auto z-20 pb-2">
         {!mealFinished ? (
           <button
@@ -256,7 +317,15 @@ export const EatingStage: React.FC<Props> = ({
             }`}
           >
             <Sparkles className="w-5 h-5 text-amber-300 fill-amber-300" />
-            <span>{isBiting ? 'Chewing happily... 🎧' : 'Feed Next Bite (Listen ASMR)'}</span>
+            <span>
+              {isBiting
+                ? isNoodle
+                  ? 'Slurping & Chewing... 🎧'
+                  : 'Chewing happily... 🎧'
+                : isNoodle
+                ? 'Lift & Slurp Noodles (Listen ASMR)'
+                : 'Feed Next Bite (Listen ASMR)'}
+            </span>
           </button>
         ) : (
           /* Finished Meal Modal / Card */
@@ -266,7 +335,7 @@ export const EatingStage: React.FC<Props> = ({
               <span>Meal Complete! +35 Coins!</span>
             </div>
             <p className="text-xs text-purple-700 font-medium text-center">
-              {selectedCharacter.name} loved every single bite! The sounds were so relaxing!
+              {selectedCharacter.name} loved every single bite! The sounds were so relaxing and delicious!
             </p>
             <div className="w-full grid grid-cols-2 gap-2">
               <button

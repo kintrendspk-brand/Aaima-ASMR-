@@ -52,6 +52,35 @@
   50% { transform: scaleY(0.92) translateY(2px); }
 }
 
+@keyframes noodleSlurp {
+  0% { transform: translateY(0) scaleY(1); opacity: 1; }
+  50% { transform: translateY(-15px) scaleY(0.6); opacity: 0.9; }
+  100% { transform: translateY(-30px) scaleY(0.1); opacity: 0; }
+}
+
+@keyframes swallowThroat {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.08) translateY(2px); }
+}
+
+@keyframes spicyFanHand {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  25% { transform: rotate(-12deg) translateX(-4px); }
+  75% { transform: rotate(12deg) translateX(4px); }
+}
+
+@keyframes circularStir {
+  0% { transform: rotate(0deg) translate(8px) rotate(0deg); }
+  100% { transform: rotate(360deg) translate(8px) rotate(-360deg); }
+}
+
+@keyframes fallingPetal {
+  0% { transform: translate(0, -10px) rotate(0deg); opacity: 0; }
+  15% { opacity: 0.8; }
+  85% { opacity: 0.8; }
+  100% { transform: translate(60px, 120vh) rotate(360deg); opacity: 0; }
+}
+
 .animate-float {
   animation: floatSlow 3.5s ease-in-out infinite;
 }
@@ -66,6 +95,22 @@
 
 .animate-chew {
   animation: chewMotion 0.28s ease-in-out infinite;
+}
+
+.animate-slurp {
+  animation: noodleSlurp 0.75s ease-in infinite;
+}
+
+.animate-swallow {
+  animation: swallowThroat 0.4s ease-in-out;
+}
+
+.animate-spicy-fan {
+  animation: spicyFanHand 0.25s ease-in-out infinite;
+}
+
+.animate-stir {
+  animation: circularStir 1.2s linear infinite;
 }
 
 .rainbow-gradient {

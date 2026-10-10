@@ -75,7 +75,19 @@ export function useGameState() {
         const parsed: SavedState = JSON.parse(saved);
         if (typeof parsed.coins === 'number') setCoins(parsed.coins);
         if (parsed.selectedCharacterId) setSelectedCharacterId(parsed.selectedCharacterId);
-        if (Array.isArray(parsed.characters)) setCharacters(parsed.characters);
+        if (Array.isArray(parsed.characters)) {
+          const mergedChars = INITIAL_CHARACTERS.map((initChar) => {
+            const existing = parsed.characters.find((c) => c.id === initChar.id);
+            return existing
+              ? {
+                  ...initChar,
+                  isUnlocked: existing.isUnlocked || initChar.isUnlocked,
+                  selectedOutfitId: existing.selectedOutfitId || initChar.selectedOutfitId,
+                }
+              : initChar;
+          });
+          setCharacters(mergedChars);
+        }
         if (Array.isArray(parsed.foods)) setFoods(parsed.foods);
         if (Array.isArray(parsed.storeItems)) setStoreItems(parsed.storeItems);
         if (Array.isArray(parsed.achievements)) setAchievements(parsed.achievements);

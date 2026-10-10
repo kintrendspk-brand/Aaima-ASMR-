@@ -56,7 +56,17 @@ export interface GirlCharacter {
   title: string;
   description: string;
   hairColor: string;
-  hairStyle: 'pigtails' | 'long_flowing' | 'twin_buns' | 'bob_cut' | 'ponytail' | 'braids';
+  hairStyle:
+    | 'pigtails'
+    | 'long_flowing'
+    | 'twin_buns'
+    | 'bob_cut'
+    | 'ponytail'
+    | 'braids'
+    | 'wavy_curls'
+    | 'side_braid'
+    | 'hime_cut'
+    | 'messy_bun';
   eyeColor: string;
   skinTone: string;
   baseOutfitColor: string;

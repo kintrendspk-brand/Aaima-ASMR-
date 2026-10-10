@@ -1,16 +1,89 @@
-// Web Audio API Synthesizer for 100% offline, zero-latency, realistic ASMR & Cooking sounds
+// Enhanced Audio Engine supporting both Real Audio Assets (via HTML5/WebAudio file loader)
+// and high-fidelity procedural Web Audio synthesis fallback for 100% offline, zero-latency reliability.
+
+export type SoundAssetKey =
+  | 'slurp_spicy'
+  | 'slurp_mild'
+  | 'slurp_brown'
+  | 'crunch_chips'
+  | 'crunch_crispy'
+  | 'crunch_chicken'
+  | 'chew_burger'
+  | 'squish_jelly'
+  | 'melt_icecream'
+  | 'sip_drink'
+  | 'boil_water'
+  | 'fry_sizzle'
+  | 'chop_knife'
+  | 'stir_noodles'
+  | 'packet_tear'
+  | 'blender_whirr'
+  | 'coin_collect'
+  | 'girl_giggle'
+  | 'girl_yum';
+
+const AUDIO_ASSET_PATHS: Record<SoundAssetKey, string> = {
+  slurp_spicy: '/audio/asmr_slurp_spicy.mp3',
+  slurp_mild: '/audio/asmr_slurp_mild.mp3',
+  slurp_brown: '/audio/asmr_slurp_brown.mp3',
+  crunch_chips: '/audio/asmr_crunch_chips.mp3',
+  crunch_crispy: '/audio/asmr_crunch_crispy.mp3',
+  crunch_chicken: '/audio/asmr_crunch_chicken.mp3',
+  chew_burger: '/audio/asmr_chew_burger.mp3',
+  squish_jelly: '/audio/asmr_squish_jelly.mp3',
+  melt_icecream: '/audio/asmr_melt_icecream.mp3',
+  sip_drink: '/audio/asmr_sip_drink.mp3',
+  boil_water: '/audio/cook_boil_water.mp3',
+  fry_sizzle: '/audio/cook_fry_sizzle.mp3',
+  chop_knife: '/audio/cook_chop_knife.mp3',
+  stir_noodles: '/audio/cook_stir_noodles.mp3',
+  packet_tear: '/audio/cook_packet_tear.mp3',
+  blender_whirr: '/audio/cook_blender_whirr.mp3',
+  coin_collect: '/audio/ui_coin_collect.mp3',
+  girl_giggle: '/audio/voice_girl_giggle.mp3',
+  girl_yum: '/audio/voice_girl_yum.mp3',
+};
+
 class SoundEngine {
   private ctx: AudioContext | null = null;
   private isMuted: boolean = false;
-  private asmrVol: number = 0.85;
-  private cookingVol: number = 0.8;
-  private musicVol: number = 0.4;
+  private asmrVol: number = 0.9;
+  private cookingVol: number = 0.85;
+  private musicVol: number = 0.45;
   private musicInterval: number | null = null;
   private isMusicPlaying: boolean = false;
 
+  // Cached HTML5 audio elements for file playback
+  private audioElements: Map<SoundAssetKey, HTMLAudioElement> = new Map();
+  private availableAssets: Set<SoundAssetKey> = new Set();
+
+  constructor() {
+    this.probeAudioAssets();
+  }
+
+  // Pre-probe external audio files if available
+  private probeAudioAssets() {
+    if (typeof window === 'undefined') return;
+    Object.entries(AUDIO_ASSET_PATHS).forEach(([key, path]) => {
+      const audio = new Audio();
+      audio.preload = 'auto';
+      audio.src = path;
+      audio.addEventListener('canplaythrough', () => {
+        this.availableAssets.add(key as SoundAssetKey);
+      });
+      audio.addEventListener('error', () => {
+        // Safe fallback: mark as unavailable so procedural synthesis handles it seamlessly
+        this.availableAssets.delete(key as SoundAssetKey);
+      });
+      this.audioElements.set(key as SoundAssetKey, audio);
+    });
+  }
+
   private initContext() {
     if (!this.ctx) {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const AudioCtx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       this.ctx = new AudioCtx();
     }
     if (this.ctx.state === 'suspended') {
@@ -30,6 +103,25 @@ class SoundEngine {
     this.musicVol = settings.musicVolume;
   }
 
+  // Try real audio asset first; fallback cleanly to procedural synth
+  private playAudioAssetOrFallback(key: SoundAssetKey, volume: number, fallbackFn: () => void) {
+    if (this.isMuted || volume <= 0) return;
+
+    if (this.availableAssets.has(key)) {
+      const audio = this.audioElements.get(key);
+      if (audio) {
+        audio.volume = Math.max(0, Math.min(1, volume));
+        audio.currentTime = 0;
+        audio.play().catch(() => {
+          // If browser blocked or file failed, fallback to synthesis immediately
+          fallbackFn();
+        });
+        return;
+      }
+    }
+    fallbackFn();
+  }
+
   // --- UI Sound Effects ---
   public playClick() {
     if (this.isMuted) return;
@@ -40,39 +132,39 @@ class SoundEngine {
     const gain = this.ctx.createGain();
     osc.type = 'sine';
     const now = this.ctx.currentTime;
-    osc.frequency.setValueAtTime(520, now);
-    osc.frequency.exponentialRampToValueAtTime(880, now + 0.06);
+    osc.frequency.setValueAtTime(560, now);
+    osc.frequency.exponentialRampToValueAtTime(880, now + 0.05);
 
-    gain.gain.setValueAtTime(0.25 * this.asmVolMultiplier(), now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+    gain.gain.setValueAtTime(0.2 * this.asmrVolMultiplier(), now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
 
     osc.connect(gain);
     gain.connect(this.ctx.destination);
     osc.start(now);
-    osc.stop(now + 0.08);
+    osc.stop(now + 0.07);
   }
 
   public playCoin() {
-    if (this.isMuted) return;
-    this.initContext();
-    if (!this.ctx) return;
+    this.playAudioAssetOrFallback('coin_collect', this.asmrVolMultiplier(), () => {
+      this.initContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const notes = [987.77, 1318.51, 1567.98]; // B5, E6, G6
+      notes.forEach((freq, idx) => {
+        const osc = this.ctx!.createOscillator();
+        const gain = this.ctx!.createGain();
+        osc.type = 'triangle';
+        const t = now + idx * 0.07;
+        osc.frequency.setValueAtTime(freq, t);
 
-    const now = this.ctx.currentTime;
-    const notes = [987.77, 1318.51, 1567.98]; // B5, E6, G6
-    notes.forEach((freq, idx) => {
-      const osc = this.ctx!.createOscillator();
-      const gain = this.ctx!.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+        gain.gain.setValueAtTime(0.22 * this.asmrVolMultiplier(), t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
 
-      const startTime = now + idx * 0.07;
-      gain.gain.setValueAtTime(0.25 * this.asmVolMultiplier(), startTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.2);
-
-      osc.connect(gain);
-      gain.connect(this.ctx!.destination);
-      osc.start(startTime);
-      osc.stop(startTime + 0.22);
+        osc.connect(gain);
+        gain.connect(this.ctx!.destination);
+        osc.start(t);
+        osc.stop(t + 0.22);
+      });
     });
   }
 
@@ -83,10 +175,10 @@ class SoundEngine {
 
     const now = this.ctx.currentTime;
     const melody = [
-      { f: 523.25, t: 0.0, d: 0.12 }, // C5
-      { f: 659.25, t: 0.12, d: 0.12 }, // E5
-      { f: 783.99, t: 0.24, d: 0.12 }, // G5
-      { f: 1046.5, t: 0.36, d: 0.4 },  // C6
+      { f: 523.25, t: 0.0, d: 0.12 },
+      { f: 659.25, t: 0.12, d: 0.12 },
+      { f: 783.99, t: 0.24, d: 0.12 },
+      { f: 1046.5, t: 0.36, d: 0.4 },
     ];
 
     melody.forEach((note) => {
@@ -95,7 +187,7 @@ class SoundEngine {
       osc.type = 'triangle';
       osc.frequency.setValueAtTime(note.f, now + note.t);
 
-      gain.gain.setValueAtTime(0.3 * this.asmVolMultiplier(), now + note.t);
+      gain.gain.setValueAtTime(0.28 * this.asmrVolMultiplier(), now + note.t);
       gain.gain.exponentialRampToValueAtTime(0.001, now + note.t + note.d);
 
       osc.connect(gain);
@@ -106,445 +198,461 @@ class SoundEngine {
   }
 
   public playGirlGiggle() {
-    if (this.isMuted) return;
-    this.initContext();
-    if (!this.ctx) return;
+    this.playAudioAssetOrFallback('girl_giggle', this.asmrVolMultiplier(), () => {
+      this.initContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      [680, 850, 1020, 890].forEach((freq, idx) => {
+        const osc = this.ctx!.createOscillator();
+        const gain = this.ctx!.createGain();
+        osc.type = 'sine';
+        const t = now + idx * 0.09;
+        osc.frequency.setValueAtTime(freq, t);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.15, t + 0.08);
 
-    const now = this.ctx.currentTime;
-    // Cute high-pitched playful vocal-like chirp
-    [680, 850, 1020, 890].forEach((freq, idx) => {
-      const osc = this.ctx!.createOscillator();
-      const gain = this.ctx!.createGain();
+        gain.gain.setValueAtTime(0.18 * this.asmrVolMultiplier(), t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+
+        osc.connect(gain);
+        gain.connect(this.ctx!.destination);
+        osc.start(t);
+        osc.stop(t + 0.1);
+      });
+    });
+  }
+
+  public playGirlYum() {
+    this.playAudioAssetOrFallback('girl_yum', this.asmrVolMultiplier(), () => {
+      this.initContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      // Satisfied soft "Mmm~" hum
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
       osc.type = 'sine';
-      const t = now + idx * 0.09;
-      osc.frequency.setValueAtTime(freq, t);
-      osc.frequency.exponentialRampToValueAtTime(freq * 1.15, t + 0.08);
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.linearRampToValueAtTime(380, now + 0.25);
+      osc.frequency.exponentialRampToValueAtTime(300, now + 0.55);
 
-      gain.gain.setValueAtTime(0.2 * this.asmVolMultiplier(), t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+      gain.gain.setValueAtTime(0.01, now);
+      gain.gain.linearRampToValueAtTime(0.2 * this.asmrVolMultiplier(), now + 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
 
       osc.connect(gain);
-      gain.connect(this.ctx!.destination);
-      osc.start(t);
-      osc.stop(t + 0.1);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.55);
     });
   }
 
   // --- Cooking Sound Synthesizers ---
-  public playBoilingWater(durationSec = 1.2) {
-    if (this.isMuted || this.cookingVol <= 0) return;
-    this.initContext();
-    if (!this.ctx) return;
+  public playBoilingWater(durationSec = 1.3) {
+    this.playAudioAssetOrFallback('boil_water', this.cookingVolMultiplier(), () => {
+      this.initContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const bufferSize = Math.floor(this.ctx.sampleRate * durationSec);
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
 
-    const now = this.ctx.currentTime;
-    const bufferSize = this.ctx.sampleRate * durationSec;
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * 0.35;
+      }
 
-    // Filtered bubble bursts
-    for (let i = 0; i < bufferSize; i++) {
-      const noise = (Math.random() * 2 - 1) * 0.3;
-      data[i] = noise;
-    }
+      const noiseSource = this.ctx.createBufferSource();
+      noiseSource.buffer = buffer;
 
-    const noiseSource = this.ctx.createBufferSource();
-    noiseSource.buffer = buffer;
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(450, now);
+      filter.Q.setValueAtTime(3.8, now);
 
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(450, now);
-    filter.Q.setValueAtTime(3.5, now);
+      for (let i = 0; i < 8; i++) {
+        filter.frequency.exponentialRampToValueAtTime(
+          320 + Math.random() * 420,
+          now + (i * durationSec) / 8
+        );
+      }
 
-    // Random pitch flutter for bubbling
-    for (let i = 0; i < 8; i++) {
-      filter.frequency.exponentialRampToValueAtTime(
-        350 + Math.random() * 400,
-        now + (i * durationSec) / 8
-      );
-    }
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.35 * this.cookingVolMultiplier(), now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + durationSec);
 
-    const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.35 * this.cookingVol, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + durationSec);
+      noiseSource.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
 
-    noiseSource.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.ctx.destination);
-
-    noiseSource.start(now);
-    noiseSource.stop(now + durationSec);
+      noiseSource.start(now);
+      noiseSource.stop(now + durationSec);
+    });
   }
 
   public playFryingSizzle(durationSec = 1.5) {
-    if (this.isMuted || this.cookingVol <= 0) return;
-    this.initContext();
-    if (!this.ctx) return;
+    this.playAudioAssetOrFallback('fry_sizzle', this.cookingVolMultiplier(), () => {
+      this.initContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const bufferSize = Math.floor(this.ctx.sampleRate * durationSec);
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
 
-    const now = this.ctx.currentTime;
-    const bufferSize = this.ctx.sampleRate * durationSec;
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * (0.35 + Math.random() * 0.55);
+      }
 
-    for (let i = 0; i < bufferSize; i++) {
-      // Crackly white/pink noise
-      data[i] = (Math.random() * 2 - 1) * (0.4 + Math.random() * 0.5);
-    }
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
 
-    const source = this.ctx.createBufferSource();
-    source.buffer = buffer;
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.setValueAtTime(1600, now);
 
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = 'highpass';
-    filter.frequency.setValueAtTime(1400, now);
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.38 * this.cookingVolMultiplier(), now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + durationSec);
 
-    const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.4 * this.cookingVol, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + durationSec);
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
 
-    source.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.ctx.destination);
-
-    source.start(now);
-    source.stop(now + durationSec);
+      source.start(now);
+      source.stop(now + durationSec);
+    });
   }
 
   public playChop() {
-    if (this.isMuted || this.cookingVol <= 0) return;
-    this.initContext();
-    if (!this.ctx) return;
+    this.playAudioAssetOrFallback('chop_knife', this.cookingVolMultiplier(), () => {
+      this.initContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
 
-    const now = this.ctx.currentTime;
-    // Woody thud
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(220, now);
-    osc.frequency.exponentialRampToValueAtTime(70, now + 0.07);
+      // Woody board thud
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.exponentialRampToValueAtTime(70, now + 0.07);
 
-    gain.gain.setValueAtTime(0.6 * this.cookingVol, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      gain.gain.setValueAtTime(0.55 * this.cookingVolMultiplier(), now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
 
-    // Knife snap
-    const snapOsc = this.ctx.createOscillator();
-    const snapGain = this.ctx.createGain();
-    snapOsc.type = 'sine';
-    snapOsc.frequency.setValueAtTime(1200, now);
-    snapOsc.frequency.exponentialRampToValueAtTime(400, now + 0.04);
-    snapGain.gain.setValueAtTime(0.3 * this.cookingVol, now);
-    snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+      // Knife blade click
+      const snapOsc = this.ctx.createOscillator();
+      const snapGain = this.ctx.createGain();
+      snapOsc.type = 'sine';
+      snapOsc.frequency.setValueAtTime(1400, now);
+      snapOsc.frequency.exponentialRampToValueAtTime(400, now + 0.04);
+      snapGain.gain.setValueAtTime(0.3 * this.cookingVolMultiplier(), now);
+      snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
 
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    snapOsc.connect(snapGain);
-    snapGain.connect(this.ctx.destination);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      snapOsc.connect(snapGain);
+      snapGain.connect(this.ctx.destination);
 
-    osc.start(now);
-    osc.stop(now + 0.08);
-    snapOsc.start(now);
-    snapOsc.stop(now + 0.04);
+      osc.start(now);
+      osc.stop(now + 0.08);
+      snapOsc.start(now);
+      snapOsc.stop(now + 0.04);
+    });
   }
 
   public playStir() {
-    if (this.isMuted || this.cookingVol <= 0) return;
-    this.initContext();
-    if (!this.ctx) return;
+    this.playAudioAssetOrFallback('stir_noodles', this.cookingVolMultiplier(), () => {
+      this.initContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
+      const gain = this.ctx.createGain();
 
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const filter = this.ctx.createBiquadFilter();
-    const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(190, now);
+      osc.frequency.linearRampToValueAtTime(280, now + 0.15);
+      osc.frequency.linearRampToValueAtTime(170, now + 0.3);
 
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(180, now);
-    osc.frequency.linearRampToValueAtTime(260, now + 0.15);
-    osc.frequency.linearRampToValueAtTime(160, now + 0.3);
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(450, now);
 
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(400, now);
+      gain.gain.setValueAtTime(0.32 * this.cookingVolMultiplier(), now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
 
-    gain.gain.setValueAtTime(0.3 * this.cookingVol, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
 
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.ctx.destination);
-
-    osc.start(now);
-    osc.stop(now + 0.32);
-  }
-
-  public playBlender(durationSec = 1.6) {
-    if (this.isMuted || this.cookingVol <= 0) return;
-    this.initContext();
-    if (!this.ctx) return;
-
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(110, now);
-    osc.frequency.exponentialRampToValueAtTime(420, now + 0.5);
-    osc.frequency.exponentialRampToValueAtTime(360, now + durationSec);
-
-    gain.gain.setValueAtTime(0.25 * this.cookingVol, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + durationSec);
-
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(now);
-    osc.stop(now + durationSec);
+      osc.start(now);
+      osc.stop(now + 0.32);
+    });
   }
 
   public playPacketTear() {
-    if (this.isMuted || this.cookingVol <= 0) return;
-    this.initContext();
-    if (!this.ctx) return;
+    this.playAudioAssetOrFallback('packet_tear', this.cookingVolMultiplier(), () => {
+      this.initContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const duration = 0.28;
+      const bufferSize = Math.floor(this.ctx.sampleRate * duration);
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
 
-    const now = this.ctx.currentTime;
-    const bufferSize = this.ctx.sampleRate * 0.25;
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * 0.75;
+      }
 
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * 0.7;
-    }
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
 
-    const source = this.ctx.createBufferSource();
-    source.buffer = buffer;
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(2400, now);
+      filter.frequency.exponentialRampToValueAtTime(800, now + duration);
 
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(2200, now);
-    filter.frequency.exponentialRampToValueAtTime(900, now + 0.25);
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.42 * this.cookingVolMultiplier(), now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
 
-    const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.4 * this.cookingVol, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
 
-    source.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.ctx.destination);
-
-    source.start(now);
-    source.stop(now + 0.25);
+      source.start(now);
+      source.stop(now + duration);
+    });
   }
 
-  // --- ASMR Food-Specific Eating Sounds ---
+  public playBlender(durationSec = 1.6) {
+    this.playAudioAssetOrFallback('blender_whirr', this.cookingVolMultiplier(), () => {
+      this.initContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(110, now);
+      osc.frequency.exponentialRampToValueAtTime(440, now + 0.5);
+      osc.frequency.exponentialRampToValueAtTime(360, now + durationSec);
 
-  // 1. Noodle Slurp (Spicy, Mild, Brown)
-  public playNoodleSlurp(isSpicy = false) {
-    if (this.isMuted || this.asmrVol <= 0) return;
-    this.initContext();
-    if (!this.ctx) return;
+      gain.gain.setValueAtTime(0.26 * this.cookingVolMultiplier(), now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + durationSec);
 
-    const now = this.ctx.currentTime;
-    const duration = isSpicy ? 0.75 : 0.65;
-
-    // Resonant wet suction
-    const osc = this.ctx.createOscillator();
-    const filter = this.ctx.createBiquadFilter();
-    const gain = this.ctx.createGain();
-
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(140, now);
-    osc.frequency.exponentialRampToValueAtTime(260, now + duration * 0.4);
-    osc.frequency.exponentialRampToValueAtTime(180, now + duration);
-
-    filter.type = 'bandpass';
-    filter.Q.setValueAtTime(isSpicy ? 6 : 4, now);
-    filter.frequency.setValueAtTime(isSpicy ? 600 : 450, now);
-    filter.frequency.exponentialRampToValueAtTime(isSpicy ? 1600 : 1200, now + duration * 0.5);
-    filter.frequency.exponentialRampToValueAtTime(300, now + duration);
-
-    gain.gain.setValueAtTime(0.4 * this.asmVolMultiplier(), now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
-
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.ctx.destination);
-
-    osc.start(now);
-    osc.stop(now + duration);
-
-    // Follow-up chewing smacks
-    setTimeout(() => {
-      this.playChewBursts(3, 0.08);
-    }, duration * 600);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + durationSec);
+    });
   }
 
-  // 2. Chip & Cracker Crisp Crunch
+  // --- Real / Synthesized ASMR Food Audio ---
+
+  // 1. Noodle Slurp (Spicy vs Mild vs Brown)
+  public playNoodleSlurp(type: 'spicy' | 'mild' | 'brown' = 'mild') {
+    const assetKey: SoundAssetKey =
+      type === 'spicy' ? 'slurp_spicy' : type === 'brown' ? 'slurp_brown' : 'slurp_mild';
+
+    this.playAudioAssetOrFallback(assetKey, this.asmrVolMultiplier(), () => {
+      this.initContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const duration = type === 'spicy' ? 0.75 : 0.65;
+
+      const osc = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(140, now);
+      osc.frequency.exponentialRampToValueAtTime(270, now + duration * 0.4);
+      osc.frequency.exponentialRampToValueAtTime(170, now + duration);
+
+      filter.type = 'bandpass';
+      filter.Q.setValueAtTime(type === 'spicy' ? 6.5 : 4.5, now);
+      filter.frequency.setValueAtTime(type === 'spicy' ? 650 : 480, now);
+      filter.frequency.exponentialRampToValueAtTime(
+        type === 'spicy' ? 1800 : 1250,
+        now + duration * 0.5
+      );
+      filter.frequency.exponentialRampToValueAtTime(320, now + duration);
+
+      gain.gain.setValueAtTime(0.42 * this.asmrVolMultiplier(), now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + duration);
+
+      setTimeout(() => {
+        this.playChewBursts(3, 0.08);
+      }, duration * 600);
+    });
+  }
+
+  // 2. Chip / Cracker Crunch
   public playCrunchChips() {
-    if (this.isMuted || this.asmrVol <= 0) return;
-    this.initContext();
-    if (!this.ctx) return;
+    this.playAudioAssetOrFallback('crunch_chips', this.asmrVolMultiplier(), () => {
+      this.initContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const duration = 0.35;
+      const bufferSize = Math.floor(this.ctx.sampleRate * duration);
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
 
-    const now = this.ctx.currentTime;
-    const duration = 0.35;
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() > 0.28 ? (Math.random() * 2 - 1) * 0.95 : 0;
+      }
 
-    const bufferSize = this.ctx.sampleRate * duration;
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
 
-    for (let i = 0; i < bufferSize; i++) {
-      // Crackle bursts
-      const burst = Math.random() > 0.3 ? (Math.random() * 2 - 1) * 0.9 : 0;
-      data[i] = burst;
-    }
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.setValueAtTime(2200, now);
 
-    const source = this.ctx.createBufferSource();
-    source.buffer = buffer;
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.58 * this.asmrVolMultiplier(), now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = 'highpass';
-    filter.frequency.setValueAtTime(2200, now);
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
 
-    const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.6 * this.asmVolMultiplier(), now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+      source.start(now);
+      source.stop(now + duration);
 
-    source.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.ctx.destination);
-
-    source.start(now);
-    source.stop(now + duration);
-
-    setTimeout(() => {
-      this.playChewBursts(2, 0.07);
-    }, 220);
+      setTimeout(() => {
+        this.playChewBursts(2, 0.07);
+      }, 200);
+    });
   }
 
-  // 3. Fried Chicken crispy bite + deep chew
+  // 3. Fried Chicken Bite
   public playFriedChickenBite() {
-    if (this.isMuted || this.asmrVol <= 0) return;
-    this.initContext();
-    if (!this.ctx) return;
-
-    // Hard initial crunch + juicy chew
-    this.playCrunchChips();
-    setTimeout(() => {
-      this.playChewBursts(4, 0.09);
-    }, 180);
+    this.playAudioAssetOrFallback('crunch_chicken', this.asmrVolMultiplier(), () => {
+      this.playCrunchChips();
+      setTimeout(() => {
+        this.playChewBursts(4, 0.09);
+      }, 160);
+    });
   }
 
-  // 4. Burger / Pizza soft chew & cheese pull
+  // 4. Burger / Pizza Chew
   public playBurgerChew() {
-    if (this.isMuted || this.asmrVol <= 0) return;
-    this.initContext();
-    if (!this.ctx) return;
+    this.playAudioAssetOrFallback('chew_burger', this.asmrVolMultiplier(), () => {
+      this.initContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(140, now);
+      osc.frequency.exponentialRampToValueAtTime(75, now + 0.12);
 
-    const now = this.ctx.currentTime;
-    // Low satisfying thud bite
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(140, now);
-    osc.frequency.exponentialRampToValueAtTime(75, now + 0.12);
+      gain.gain.setValueAtTime(0.4 * this.asmrVolMultiplier(), now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.13);
 
-    gain.gain.setValueAtTime(0.4 * this.asmVolMultiplier(), now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.13);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.13);
 
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.13);
-
-    setTimeout(() => {
-      this.playChewBursts(3, 0.1);
-    }, 120);
+      setTimeout(() => {
+        this.playChewBursts(3, 0.1);
+      }, 120);
+    });
   }
 
-  // 5. Jelly / Marshmallow Squish
+  // 5. Jelly Squish
   public playJellySquish() {
-    if (this.isMuted || this.asmrVol <= 0) return;
-    this.initContext();
-    if (!this.ctx) return;
+    this.playAudioAssetOrFallback('squish_jelly', this.asmrVolMultiplier(), () => {
+      this.initContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(650, now + 0.08);
+      osc.frequency.exponentialRampToValueAtTime(220, now + 0.18);
 
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(320, now);
-    osc.frequency.exponentialRampToValueAtTime(650, now + 0.08);
-    osc.frequency.exponentialRampToValueAtTime(220, now + 0.18);
+      gain.gain.setValueAtTime(0.42 * this.asmrVolMultiplier(), now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
 
-    gain.gain.setValueAtTime(0.4 * this.asmVolMultiplier(), now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.2);
 
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.2);
-
-    setTimeout(() => {
-      this.playChewBursts(2, 0.06);
-    }, 150);
+      setTimeout(() => {
+        this.playChewBursts(2, 0.06);
+      }, 140);
+    });
   }
 
-  // 6. Drink Sip & Straw slurping
+  // 6. Drink Sip & Boba Straw
   public playDrinkSip() {
-    if (this.isMuted || this.asmrVol <= 0) return;
-    this.initContext();
-    if (!this.ctx) return;
+    this.playAudioAssetOrFallback('sip_drink', this.asmrVolMultiplier(), () => {
+      this.initContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const duration = 0.55;
 
-    const now = this.ctx.currentTime;
-    const duration = 0.55;
+      const osc = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
+      const gain = this.ctx.createGain();
 
-    // Resonant liquid straw suction
-    const osc = this.ctx.createOscillator();
-    const filter = this.ctx.createBiquadFilter();
-    const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(380, now);
+      osc.frequency.exponentialRampToValueAtTime(750, now + duration);
 
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(380, now);
-    osc.frequency.exponentialRampToValueAtTime(720, now + duration);
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(850, now);
+      filter.Q.setValueAtTime(5, now);
 
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(800, now);
-    filter.Q.setValueAtTime(5, now);
+      gain.gain.setValueAtTime(0.38 * this.asmrVolMultiplier(), now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
 
-    gain.gain.setValueAtTime(0.35 * this.asmVolMultiplier(), now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
 
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + duration);
 
-    osc.start(now);
-    osc.stop(now + duration);
-
-    // Ice cube clink
-    setTimeout(() => {
-      this.playIceClink();
-    }, 380);
+      setTimeout(() => {
+        this.playIceClink();
+      }, 360);
+    });
   }
 
-  // 7. Ice cream lick / spoon
+  // 7. Ice Cream Lick
   public playIceCreamLick() {
-    if (this.isMuted || this.asmrVol <= 0) return;
-    this.initContext();
-    if (!this.ctx) return;
+    this.playAudioAssetOrFallback('melt_icecream', this.asmrVolMultiplier(), () => {
+      this.initContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(260, now);
+      osc.frequency.linearRampToValueAtTime(390, now + 0.12);
+      osc.frequency.linearRampToValueAtTime(190, now + 0.22);
 
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(260, now);
-    osc.frequency.linearRampToValueAtTime(380, now + 0.12);
-    osc.frequency.linearRampToValueAtTime(190, now + 0.22);
+      gain.gain.setValueAtTime(0.35 * this.asmrVolMultiplier(), now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.24);
 
-    gain.gain.setValueAtTime(0.35 * this.asmVolMultiplier(), now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.25);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.24);
+    });
   }
 
   private playIceClink() {
-    if (!this.ctx) return;
+    if (!this.ctx || this.isMuted) return;
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
@@ -552,7 +660,7 @@ class SoundEngine {
     osc.frequency.setValueAtTime(1800, now);
     osc.frequency.exponentialRampToValueAtTime(1400, now + 0.08);
 
-    gain.gain.setValueAtTime(0.18 * this.asmVolMultiplier(), now);
+    gain.gain.setValueAtTime(0.18 * this.asmrVolMultiplier(), now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
 
     osc.connect(gain);
@@ -574,7 +682,7 @@ class SoundEngine {
       osc.frequency.setValueAtTime(160 + Math.random() * 40, t);
       osc.frequency.exponentialRampToValueAtTime(80, t + 0.05);
 
-      gain.gain.setValueAtTime(0.25 * this.asmVolMultiplier(), t);
+      gain.gain.setValueAtTime(0.24 * this.asmrVolMultiplier(), t);
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
 
       osc.connect(gain);
@@ -588,11 +696,13 @@ class SoundEngine {
   public playAsmrSound(type: string) {
     switch (type) {
       case 'slurp_spicy':
-        this.playNoodleSlurp(true);
+        this.playNoodleSlurp('spicy');
+        break;
+      case 'slurp_brown':
+        this.playNoodleSlurp('brown');
         break;
       case 'slurp_mild':
-      case 'slurp_brown':
-        this.playNoodleSlurp(false);
+        this.playNoodleSlurp('mild');
         break;
       case 'crunch_chips':
       case 'crunch_crispy':
@@ -625,14 +735,13 @@ class SoundEngine {
     }
   }
 
-  // --- Background Pastel Ambient Lofi Chime Music ---
+  // --- Background Pastel Ambient Lofi Music ---
   public startMusic() {
     if (this.isMusicPlaying || this.isMuted || this.musicVol <= 0) return;
     this.initContext();
     this.isMusicPlaying = true;
 
-    // Pastel pentatonic arpeggio sequence in F Major (dreamy, relaxing)
-    const scale = [349.23, 392.0, 440.0, 523.25, 587.33, 698.46]; // F4, G4, A4, C5, D5, F5
+    const scale = [349.23, 392.0, 440.0, 523.25, 587.33, 698.46]; // F Major Pentatonic
     let step = 0;
 
     const playNote = () => {
@@ -669,8 +778,12 @@ class SoundEngine {
     }
   }
 
-  private asmVolMultiplier() {
+  private asmrVolMultiplier() {
     return this.isMuted ? 0 : this.asmrVol;
+  }
+
+  private cookingVolMultiplier() {
+    return this.isMuted ? 0 : this.cookingVol;
   }
 }
 

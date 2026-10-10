@@ -60,7 +60,7 @@ export const CharacterSelector: React.FC<Props> = ({
             Choose Your Girl
           </h2>
           <span className="text-[10px] text-pink-600 font-bold">
-            6 Adorable Characters & Outfits
+            10 Adorable Real-Looking Characters & Outfits
           </span>
         </div>
 
@@ -173,12 +173,12 @@ export const CharacterSelector: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Horizontal Carousel Thumbnails of all 6 characters */}
+      {/* 2-Row Grid Thumbnails of all 10 characters */}
       <div className="w-full max-w-md mx-auto">
         <span className="text-xs font-bold text-purple-800 mb-1.5 block">
-          Select Character:
+          Select From 10 Cute Girls:
         </span>
-        <div className="grid grid-cols-6 gap-2">
+        <div className="grid grid-cols-5 gap-1.5">
           {characters.map((char) => {
             const isSelected = char.id === activeCharId;
             return (

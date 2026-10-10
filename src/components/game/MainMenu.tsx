@@ -149,7 +149,7 @@ export const MainMenu: React.FC<Props> = ({
             </div>
             <div>
               <div className="font-bold">Choose Girl</div>
-              <div className="text-[10px] text-pink-500 font-normal">6 Characters</div>
+              <div className="text-[10px] text-pink-500 font-normal">10 Characters</div>
             </div>
           </button>
 
