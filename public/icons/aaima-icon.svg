@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffd7ef"/><stop offset="1" stop-color="#d9d5ff"/></linearGradient>
+    <linearGradient id="rainbow" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#ff719a"/><stop offset=".25" stop-color="#ffbd65"/><stop offset=".5" stop-color="#ffe77b"/><stop offset=".75" stop-color="#79d9b1"/><stop offset="1" stop-color="#9d9aff"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path d="M92 260a164 164 0 0 1 328 0" fill="none" stroke="#fff" stroke-width="48" stroke-linecap="round"/>
+  <path d="M112 260a144 144 0 0 1 288 0" fill="none" stroke="url(#rainbow)" stroke-width="34" stroke-linecap="round"/>
+  <g transform="translate(256 300)">
+    <ellipse cx="0" cy="92" rx="112" ry="20" fill="#b6a4db" opacity=".25"/>
+    <path d="M-67 17Q-94 67-77 106L77 106Q94 67 67 17Z" fill="#f58bb9"/>
+    <path d="M-67 17Q0 48 67 17L52 65Q0 87-52 65Z" fill="#fff2f8"/>
+    <path d="M-73-30Q-92-93-48-118Q0-146 48-118Q91-94 73-30L62 14Q0 43-62 14Z" fill="#704b57"/>
+    <ellipse cy="-51" rx="69" ry="77" fill="#ffd4bb"/>
+    <path d="M-69-57Q-76-132-9-131Q58-139 73-71L53-83Q18-102-12-81Q-43-58-69-57Z" fill="#704b57"/>
+    <path d="M-67-75Q-97-18-72 18L-53-8L-54-66Z M67-75Q97-18 72 18L53-8L54-66Z" fill="#704b57"/>
+    <ellipse cx="-27" cy="-48" rx="8" ry="12" fill="#493342"/>
+    <ellipse cx="27" cy="-48" rx="8" ry="12" fill="#493342"/>
+    <circle cx="-29" cy="-52" r="3" fill="#fff"/><circle cx="25" cy="-52" r="3" fill="#fff"/>
+    <ellipse cx="-43" cy="-25" rx="13" ry="7" fill="#ff9eb7" opacity=".75"/><ellipse cx="43" cy="-25" rx="13" ry="7" fill="#ff9eb7" opacity=".75"/>
+    <path d="M-12-20Q0-8 12-20" fill="none" stroke="#b85c77" stroke-width="5" stroke-linecap="round"/>
+    <path d="M-20-122Q-4-145 15-125" fill="none" stroke="#ff8fb9" stroke-width="15" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(400 115)" stroke="#8b70c8" stroke-width="4" stroke-linecap="round"><ellipse cx="-10" cy="-8" rx="13" ry="21" fill="#fff"/><ellipse cx="10" cy="-8" rx="13" ry="21" fill="#fff"/><ellipse cx="-10" cy="10" rx="11" ry="15" fill="#f5a9db"/><ellipse cx="10" cy="10" rx="11" ry="15" fill="#f5a9db"/><path d="M0 0v24"/></g>
+</svg>
