@@ -128,17 +128,27 @@ export const MainMenu: React.FC<Props> = ({
       </div>
 
       {/* Main Menu Action Buttons Grid */}
-      <div className="w-full max-w-md mx-auto px-4 pb-5 z-30 flex flex-col gap-2.5">
-        {/* Giant Primary PLAY Button */}
-        <button
-          onClick={() => handleNav('cooking')}
-          className="w-full py-3.5 bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-extrabold text-base rounded-2xl shadow-md hover:shadow-pink-300/60 flex items-center justify-center gap-2.5 transition-transform active:scale-95 border-2 border-white/60"
-        >
-          <Play className="w-5 h-5 fill-white" />
-          <span>PLAY (Cook & Eat)</span>
-        </button>
+      <div className="w-full max-w-md mx-auto px-4 pb-5 z-30 flex flex-col gap-2">
+        {/* Dual Primary Action Buttons: Tanghulu Master & Classic Kitchen */}
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => handleNav('tanghulu_maker')}
+            className="py-3 bg-gradient-to-r from-red-500 via-pink-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-md hover:shadow-red-300/60 flex items-center justify-center gap-1.5 transition-transform active:scale-95 border-2 border-white/80"
+          >
+            <span className="text-base">🍓</span>
+            <span>Tanghulu Master</span>
+          </button>
 
-        {/* 2-Column Grid for the 7 Required Menu Buttons */}
+          <button
+            onClick={() => handleNav('cooking')}
+            className="py-3 bg-gradient-to-r from-purple-500 via-indigo-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-md hover:shadow-purple-300/60 flex items-center justify-center gap-1.5 transition-transform active:scale-95 border-2 border-white/80"
+          >
+            <Play className="w-4 h-4 fill-white" />
+            <span>Kitchen & Eat</span>
+          </button>
+        </div>
+
+        {/* Grid for Whoyaho Tanghulu Master & Kitchen Menu Buttons */}
         <div className="grid grid-cols-2 gap-2 text-xs font-bold">
           <button
             onClick={() => handleNav('character_select')}
@@ -154,28 +164,41 @@ export const MainMenu: React.FC<Props> = ({
           </button>
 
           <button
-            onClick={() => handleNav('cooking')}
-            className="flex items-center gap-2.5 p-2.5 bg-white/90 hover:bg-white text-amber-700 rounded-xl border border-amber-200 shadow-xs active:scale-95 transition-all text-left"
+            onClick={() => handleNav('missions')}
+            className="flex items-center gap-2.5 p-2.5 bg-white/90 hover:bg-white text-rose-700 rounded-xl border border-rose-200 shadow-xs active:scale-95 transition-all text-left"
           >
-            <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600 shrink-0">
-              <UtensilsCrossed className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center text-rose-600 shrink-0">
+              <span className="text-base">💌</span>
             </div>
             <div>
-              <div className="font-bold">Kitchen</div>
-              <div className="text-[10px] text-amber-600 font-normal">Interactive Cook</div>
+              <div className="font-bold">Viewer Orders</div>
+              <div className="text-[10px] text-rose-500 font-normal">Missions & Play Buttons</div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => handleNav('bakery_job')}
+            className="flex items-center gap-2.5 p-2.5 bg-white/90 hover:bg-white text-amber-800 rounded-xl border border-amber-200 shadow-xs active:scale-95 transition-all text-left"
+          >
+            <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
+              <span className="text-base">🥐</span>
+            </div>
+            <div>
+              <div className="font-bold">Bakery Shift</div>
+              <div className="text-[10px] text-amber-600 font-normal">Earn Fast Coins</div>
             </div>
           </button>
 
           <button
             onClick={() => handleNav('food_collection')}
-            className="flex items-center gap-2.5 p-2.5 bg-white/90 hover:bg-white text-rose-700 rounded-xl border border-rose-200 shadow-xs active:scale-95 transition-all text-left"
+            className="flex items-center gap-2.5 p-2.5 bg-white/90 hover:bg-white text-purple-800 rounded-xl border border-purple-200 shadow-xs active:scale-95 transition-all text-left"
           >
-            <div className="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center text-rose-600 shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600 shrink-0">
               <BookOpen className="w-4 h-4" />
             </div>
             <div>
               <div className="font-bold">Collection</div>
-              <div className="text-[10px] text-rose-500 font-normal">49 Foods</div>
+              <div className="text-[10px] text-purple-500 font-normal">49 Foods</div>
             </div>
           </button>
 
@@ -202,19 +225,6 @@ export const MainMenu: React.FC<Props> = ({
             <div>
               <div className="font-bold">Rewards</div>
               <div className="text-[10px] text-blue-500 font-normal">Daily Coins</div>
-            </div>
-          </button>
-
-          <button
-            onClick={() => handleNav('achievements')}
-            className="flex items-center gap-2.5 p-2.5 bg-white/90 hover:bg-white text-yellow-800 rounded-xl border border-yellow-200 shadow-xs active:scale-95 transition-all text-left"
-          >
-            <div className="w-7 h-7 rounded-lg bg-yellow-100 flex items-center justify-center text-yellow-600 shrink-0">
-              <Trophy className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="font-bold">Achievements</div>
-              <div className="text-[10px] text-yellow-600 font-normal">Quests & Badges</div>
             </div>
           </button>
         </div>

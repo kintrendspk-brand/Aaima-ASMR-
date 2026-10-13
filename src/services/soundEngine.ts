@@ -2,6 +2,7 @@
 // and high-fidelity procedural Web Audio synthesis fallback for 100% offline, zero-latency reliability.
 
 export type SoundAssetKey =
+  | 'crunch_tanghulu'
   | 'slurp_spicy'
   | 'slurp_mild'
   | 'slurp_brown'
@@ -23,6 +24,7 @@ export type SoundAssetKey =
   | 'girl_yum';
 
 const AUDIO_ASSET_PATHS: Record<SoundAssetKey, string> = {
+  crunch_tanghulu: '/audio/asmr_crunch_tanghulu.mp3',
   slurp_spicy: '/audio/asmr_slurp_spicy.mp3',
   slurp_mild: '/audio/asmr_slurp_mild.mp3',
   slurp_brown: '/audio/asmr_slurp_brown.mp3',
@@ -79,7 +81,7 @@ class SoundEngine {
     });
   }
 
-  private initContext() {
+  public initContext() {
     if (!this.ctx) {
       const AudioCtx =
         window.AudioContext ||
@@ -490,6 +492,322 @@ class SoundEngine {
     });
   }
 
+  // 0. SIGNATURE TANGHULU CRUNCH (Iconic Glass Sugar Shell Shatter + Juicy Fruit Squish)
+  public playTanghuluCrunch(hasPopping = false) {
+    this.playAudioAssetOrFallback('crunch_tanghulu', this.asmrVolMultiplier(), () => {
+      this.initContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+
+      // Part 1: Glassy Sugar Shell Snap (Sharp High Transient)
+      const bufferSize = Math.floor(this.ctx.sampleRate * 0.08);
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+      }
+      const noiseSource = this.ctx.createBufferSource();
+      noiseSource.buffer = buffer;
+      const noiseFilter = this.ctx.createBiquadFilter();
+      noiseFilter.type = 'highpass';
+      noiseFilter.frequency.setValueAtTime(3600, now);
+      const noiseGain = this.ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.7 * this.asmrVolMultiplier(), now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      noiseSource.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(this.ctx.destination);
+      noiseSource.start(now);
+      noiseSource.stop(now + 0.08);
+
+      // Part 2: Sugar Crystal Resonance (Dual High Pings)
+      [1920, 2450].forEach((freq) => {
+        const osc = this.ctx!.createOscillator();
+        const gain = this.ctx!.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.7, now + 0.1);
+        gain.gain.setValueAtTime(0.3 * this.asmrVolMultiplier(), now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        osc.connect(gain);
+        gain.connect(this.ctx!.destination);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      });
+
+      // Part 3: Juicy Fruit Bite (Warm Resonant Transient)
+      const fruitOsc = this.ctx.createOscillator();
+      const fruitGain = this.ctx.createGain();
+      fruitOsc.type = 'sine';
+      fruitOsc.frequency.setValueAtTime(340, now);
+      fruitOsc.frequency.exponentialRampToValueAtTime(110, now + 0.12);
+      fruitGain.gain.setValueAtTime(0.35 * this.asmrVolMultiplier(), now);
+      fruitGain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+      fruitOsc.connect(fruitGain);
+      fruitGain.connect(this.ctx.destination);
+      fruitOsc.start(now);
+      fruitOsc.stop(now + 0.13);
+
+      // Part 4: Delicious Crunchy Chewing Follow-up
+      setTimeout(() => {
+        this.playChewBursts(3, 0.07);
+      }, 140);
+
+      // Optional Part 5: Popping Candy Fizzle
+      if (hasPopping) {
+        setTimeout(() => {
+          this.playPoppingFizzle();
+        }, 220);
+      }
+    });
+  }
+
+  // Popping Candy Micro Clicks
+  public playPoppingFizzle() {
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+    for (let i = 0; i < 7; i++) {
+      const t = now + i * 0.05 + Math.random() * 0.02;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(2600 + Math.random() * 1400, t);
+      gain.gain.setValueAtTime(0.12 * this.asmrVolMultiplier(), t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.02);
+    }
+  }
+
+  // Live Stream Heart Pop
+  public playHeartPop() {
+    if (!this.ctx || this.isMuted) return;
+    this.initContext();
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(440, now);
+    osc.frequency.exponentialRampToValueAtTime(880, now + 0.06);
+    gain.gain.setValueAtTime(0.15 * this.asmrVolMultiplier(), now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.07);
+  }
+
+  // Superchat Donation Bell
+  public playSuperchatDonation() {
+    if (!this.ctx || this.isMuted) return;
+    this.initContext();
+    const now = this.ctx.currentTime;
+    [1046.5, 1318.5, 1567.98, 2093.0].forEach((freq, idx) => {
+      const osc = this.ctx!.createOscillator();
+      const gain = this.ctx!.createGain();
+      osc.type = 'triangle';
+      const t = now + idx * 0.08;
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.28 * this.asmrVolMultiplier(), t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+      osc.connect(gain);
+      gain.connect(this.ctx!.destination);
+      osc.start(t);
+      osc.stop(t + 0.3);
+    });
+  }
+
+  // --- Real-time Hand-to-Mouth ASMR Interactions ---
+
+  // 1. Skewer Wood Handling & Food Movement Sound
+  public playSkewerHandling() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+
+    // Soft tactile woody click / friction
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(320, now);
+    osc.frequency.exponentialRampToValueAtTime(140, now + 0.06);
+
+    gain.gain.setValueAtTime(0.18 * this.asmrVolMultiplier(), now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.07);
+  }
+
+  // 2. High-Precision "sharp-crack" variant for the initial bite (Hard brittle sugar shell fracture & snap)
+  public playSharpCrack(variation = 0) {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+
+    // Pitch shift variations based on bite index
+    const baseFreq = [4000, 4400, 3700, 4250][variation % 4];
+    const pingA = [2250, 2580, 2080, 2700][variation % 4];
+    const pingB = [3100, 3450, 2900, 3600][variation % 4];
+
+    // Layer 1: High-frequency brittle crack noise transient (immediate at exact millisecond)
+    const bufferSize = Math.floor(this.ctx.sampleRate * 0.085);
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2.2);
+    }
+    const noiseSource = this.ctx.createBufferSource();
+    noiseSource.buffer = buffer;
+    const noiseFilter = this.ctx.createBiquadFilter();
+    noiseFilter.type = 'highpass';
+    noiseFilter.frequency.setValueAtTime(baseFreq, now);
+
+    const noiseGain = this.ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.95 * this.asmrVolMultiplier(), now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.085);
+
+    noiseSource.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(this.ctx.destination);
+    noiseSource.start(now);
+    noiseSource.stop(now + 0.085);
+
+    // Layer 2: Crystal Glassy Ringing Pings
+    [pingA, pingB].forEach((freq) => {
+      const osc = this.ctx!.createOscillator();
+      const gain = this.ctx!.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.65, now + 0.12);
+      gain.gain.setValueAtTime(0.38 * this.asmrVolMultiplier(), now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc.connect(gain);
+      gain.connect(this.ctx!.destination);
+      osc.start(now);
+      osc.stop(now + 0.12);
+    });
+
+    // Layer 3: Solid Tooth Snap Impact (Low-Mid transient body)
+    const snapOsc = this.ctx.createOscillator();
+    const snapGain = this.ctx.createGain();
+    snapOsc.type = 'sine';
+    snapOsc.frequency.setValueAtTime(460, now);
+    snapOsc.frequency.exponentialRampToValueAtTime(80, now + 0.08);
+    snapGain.gain.setValueAtTime(0.44 * this.asmrVolMultiplier(), now);
+    snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+    snapOsc.connect(snapGain);
+    snapGain.connect(this.ctx.destination);
+    snapOsc.start(now);
+    snapOsc.stop(now + 0.08);
+  }
+
+  // Alias for backward compatibility
+  public playTanghuluGlassSnap(variation = 0) {
+    this.playSharpCrack(variation);
+  }
+
+  // 3. Realistic "juicy-mush" variant for subsequent chews and pulp mastication
+  public playJuicyMush(variation = 0) {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+
+    const baseTones = [190, 220, 170, 240];
+    const tone = baseTones[variation % baseTones.length];
+
+    // Layer 1: Resonant jaw mastication compression
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(tone, now);
+    osc.frequency.exponentialRampToValueAtTime(75, now + 0.1);
+
+    gain.gain.setValueAtTime(0.36 * this.asmrVolMultiplier(), now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.1);
+
+    // Layer 2: Saliva squelch & wet texture micro-clicks
+    const squelchCount = 2 + (variation % 2);
+    for (let i = 0; i < squelchCount; i++) {
+      const t = now + 0.02 + i * 0.035;
+      const squelchOsc = this.ctx.createOscillator();
+      const squelchGain = this.ctx.createGain();
+      squelchOsc.type = 'sine';
+      squelchOsc.frequency.setValueAtTime(1100 + (variation * 180) + Math.random() * 300, t);
+      squelchOsc.frequency.exponentialRampToValueAtTime(280, t + 0.04);
+      squelchGain.gain.setValueAtTime(0.16 * this.asmrVolMultiplier(), t);
+      squelchGain.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
+      squelchOsc.connect(squelchGain);
+      squelchGain.connect(this.ctx.destination);
+      squelchOsc.start(t);
+      squelchOsc.stop(t + 0.05);
+    }
+
+    // Layer 3: Warm juicy fruit flesh / noodle pulp body
+    const fruitBody = this.ctx.createOscillator();
+    const fruitGain = this.ctx.createGain();
+    fruitBody.type = 'sine';
+    fruitBody.frequency.setValueAtTime(140, now + 0.01);
+    fruitBody.frequency.exponentialRampToValueAtTime(65, now + 0.1);
+    fruitGain.gain.setValueAtTime(0.24 * this.asmrVolMultiplier(), now + 0.01);
+    fruitGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+    fruitBody.connect(fruitGain);
+    fruitGain.connect(this.ctx.destination);
+    fruitBody.start(now + 0.01);
+    fruitBody.stop(now + 0.1);
+  }
+
+  // Alias for backward compatibility
+  public playJuicyChewCycle(variation = 0) {
+    this.playJuicyMush(variation);
+  }
+
+  // Master dispatcher for specific ASMR sound variants ('sharp-crack', 'juicy-mush', etc.)
+  public playAsmrVariant(variant: 'sharp-crack' | 'juicy-mush' | string, variation = 0) {
+    if (variant === 'sharp-crack') {
+      this.playSharpCrack(variation);
+    } else if (variant === 'juicy-mush') {
+      this.playJuicyMush(variation);
+    } else {
+      this.playAsmrSound(variant);
+    }
+  }
+
+  // 4. Throat Swallow & Gulp Sound
+  public playSwallow() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+
+    // Resonant throat swallow
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.exponentialRampToValueAtTime(110, now + 0.16);
+
+    gain.gain.setValueAtTime(0.35 * this.asmrVolMultiplier(), now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.18);
+  }
+
   // 2. Chip / Cracker Crunch
   public playCrunchChips() {
     this.playAudioAssetOrFallback('crunch_chips', this.asmrVolMultiplier(), () => {
@@ -695,6 +1013,15 @@ class SoundEngine {
   // --- Master ASMR Dispatcher by Sound Type ---
   public playAsmrSound(type: string) {
     switch (type) {
+      case 'sharp-crack':
+        this.playSharpCrack();
+        break;
+      case 'juicy-mush':
+        this.playJuicyMush();
+        break;
+      case 'crunch_tanghulu':
+        this.playTanghuluCrunch();
+        break;
       case 'slurp_spicy':
         this.playNoodleSlurp('spicy');
         break;

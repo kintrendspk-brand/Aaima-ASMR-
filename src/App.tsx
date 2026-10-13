@@ -12,7 +12,12 @@ import { RewardsModal } from './components/game/RewardsModal';
 import { AchievementsModal } from './components/game/AchievementsModal';
 import { SettingsModal } from './components/game/SettingsModal';
 import { ApkGuideModal } from './components/game/ApkGuideModal';
-import { FoodItem } from './types/game';
+import { TanghuluMaker } from './components/game/TanghuluMaker';
+import { MukbangLiveStream } from './components/game/MukbangLiveStream';
+import { BakeryMiniGame } from './components/game/BakeryMiniGame';
+import { ViewerMissionsModal } from './components/game/ViewerMissionsModal';
+import { INITIAL_MUKBANG_MISSIONS } from './data/tanghuluData';
+import { FoodItem, CustomTanghulu, MukbangMission } from './types/game';
 
 export default function App() {
   const {
@@ -29,6 +34,7 @@ export default function App() {
     settings,
     activeFood,
     activeWallpaper,
+    addCoins,
     selectCharacter,
     unlockCharacter,
     selectOutfit,
@@ -61,6 +67,17 @@ export default function App() {
     }
   };
 
+  const [customTanghulu, setCustomTanghulu] = useState<CustomTanghulu | null>(null);
+  const [subscribers, setSubscribers] = useState<number>(1280);
+  const [missions, setMissions] = useState<MukbangMission[]>(INITIAL_MUKBANG_MISSIONS);
+  const [unlockedFruits] = useState<string[]>([
+    'fruit_strawberry',
+    'fruit_muscat',
+    'fruit_mandarin',
+    'fruit_tomato',
+    'fruit_marshmallow',
+  ]);
+
   // Navigators
   const startCookingFood = (food: FoodItem) => {
     selectFood(food);
@@ -75,6 +92,28 @@ export default function App() {
   const handleFinishCooking = () => {
     recordCookCompletion();
     setScreen('eating');
+  };
+
+  const handleFinishTanghulu = (tanghulu: CustomTanghulu) => {
+    setCustomTanghulu(tanghulu);
+    setScreen('mukbang_live');
+  };
+
+  const handleFinishMukbang = (coinsEarned: number, subsGained: number) => {
+    addCoins(coinsEarned);
+    setSubscribers((prev) => prev + subsGained);
+  };
+
+  const handleEarnBakerySalary = (amount: number) => {
+    addCoins(amount);
+  };
+
+  const handleClaimMission = (id: string, rewardCoins: number, rewardSubs: number) => {
+    addCoins(rewardCoins);
+    setSubscribers((prev) => prev + rewardSubs);
+    setMissions((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, isClaimed: true, isCompleted: true } : m))
+    );
   };
 
   const hasGoldenLadle = Boolean(
@@ -124,7 +163,30 @@ export default function App() {
           />
         )}
 
-        {/* Screen 4: Stage A - Interactive Cooking Kitchen */}
+        {/* Screen 4: Tanghulu Master Fruit Skewer & Sugar Syrup Maker */}
+        {screen === 'tanghulu_maker' && (
+          <TanghuluMaker
+            selectedCharacter={selectedCharacter}
+            onFinishTanghulu={handleFinishTanghulu}
+            onBack={() => setScreen('main_menu')}
+            unlockedFruits={unlockedFruits}
+          />
+        )}
+
+        {/* Screen 5: Mukbang Live Stream (Tanghulu Master Mukbang ASMR) */}
+        {screen === 'mukbang_live' && (
+          <MukbangLiveStream
+            food={activeFood}
+            customTanghulu={customTanghulu}
+            selectedCharacter={selectedCharacter}
+            subscribers={subscribers}
+            onFinishMukbang={handleFinishMukbang}
+            onBackToMenu={() => setScreen('main_menu')}
+            onMakeAnotherTanghulu={() => setScreen('tanghulu_maker')}
+          />
+        )}
+
+        {/* Screen 6: Stage A - Interactive Cooking Kitchen */}
         {screen === 'cooking' && (
           <CookingStage
             food={activeFood}
@@ -187,6 +249,24 @@ export default function App() {
             achievements={achievements}
             coins={coins}
             onClaimAchievement={claimAchievement}
+            onBack={() => setScreen('main_menu')}
+          />
+        )}
+
+        {/* Screen: Viewer Request Missions & Play Button Milestones (Whoyaho Tanghulu Master feature!) */}
+        {screen === 'missions' && (
+          <ViewerMissionsModal
+            missions={missions}
+            subscribers={subscribers}
+            onClaimMission={handleClaimMission}
+            onBack={() => setScreen('main_menu')}
+          />
+        )}
+
+        {/* Screen: Bakery Part-Time Job (Whoyaho Tanghulu Master feature!) */}
+        {screen === 'bakery_job' && (
+          <BakeryMiniGame
+            onEarnCoins={handleEarnBakerySalary}
             onBack={() => setScreen('main_menu')}
           />
         )}

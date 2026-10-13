@@ -1,6 +1,7 @@
-export type FoodCategory = 'noodles' | 'snacks' | 'fastfood' | 'desserts' | 'drinks';
+export type FoodCategory = 'tanghulu' | 'noodles' | 'snacks' | 'fastfood' | 'desserts' | 'drinks';
 
 export type AsmrSoundType =
+  | 'crunch_tanghulu'
   | 'slurp_spicy'
   | 'slurp_mild'
   | 'slurp_brown'
@@ -15,6 +16,7 @@ export type AsmrSoundType =
   | 'soft_cake';
 
 export type CookingStyle =
+  | 'make_tanghulu'
   | 'boil_noodles'
   | 'fry_pan'
   | 'assemble_burger'
@@ -22,6 +24,68 @@ export type CookingStyle =
   | 'blend_drink'
   | 'bake_dessert'
   | 'scoop_icecream';
+
+export interface FruitIngredient {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  taste: string;
+  price: number;
+  isUnlocked: boolean;
+}
+
+export interface TanghuluSkewerStick {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  price: number;
+  isUnlocked: boolean;
+}
+
+export interface TanghuluTopping {
+  id: string;
+  name: string;
+  icon: string;
+  soundEffect: string;
+  price: number;
+  isUnlocked: boolean;
+}
+
+export interface CustomTanghulu {
+  id: string;
+  name: string;
+  fruits: string[];
+  skewerStickId: string;
+  toppingId: string;
+  syrupColor: string;
+  totalBites: number;
+  bitesLeft: number;
+}
+
+export interface LiveChatMessage {
+  id: string;
+  user: string;
+  avatar: string;
+  badge?: string;
+  text: string;
+  color?: string;
+  isDonation?: boolean;
+  donationAmount?: number;
+}
+
+export interface MukbangMission {
+  id: string;
+  title: string;
+  description: string;
+  targetCount: number;
+  currentCount: number;
+  rewardCoins: number;
+  rewardSubs: number;
+  isCompleted: boolean;
+  isClaimed: boolean;
+}
 
 export interface FoodItem {
   id: string;
@@ -38,6 +102,7 @@ export interface FoodItem {
   spicyLevel?: number;
   sweetLevel?: number;
   crunchLevel?: number;
+  tanghuluFruits?: string[]; // for pre-made Tanghulu items
 }
 
 export interface CharacterOutfit {
@@ -48,6 +113,7 @@ export interface CharacterOutfit {
   dressColor: string;
   accentColor: string;
   styleName: string;
+  hasHeadset?: boolean;
 }
 
 export interface GirlCharacter {
@@ -82,7 +148,7 @@ export interface GirlCharacter {
 export interface StoreItem {
   id: string;
   name: string;
-  category: 'kitchen_decor' | 'table_decor' | 'wallpaper';
+  category: 'kitchen_decor' | 'table_decor' | 'wallpaper' | 'streamer_gear';
   price: number;
   isUnlocked: boolean;
   description: string;
@@ -118,15 +184,28 @@ export interface GameSettings {
   language: 'en';
 }
 
+export interface StudioPet {
+  id: string;
+  name: string;
+  icon: string;
+  price: number;
+  isUnlocked: boolean;
+  cheerPhrase: string;
+}
+
 export type GameScreen =
   | 'opening'
   | 'main_menu'
   | 'character_select'
+  | 'tanghulu_maker'
   | 'cooking'
   | 'eating'
+  | 'mukbang_live'
+  | 'bakery_job'
   | 'food_collection'
   | 'store'
   | 'rewards'
+  | 'missions'
   | 'achievements'
   | 'settings'
   | 'apk_guide';

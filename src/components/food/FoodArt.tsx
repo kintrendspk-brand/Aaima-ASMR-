@@ -45,6 +45,206 @@ export const FoodArt: React.FC<Props> = ({
       );
     }
 
+    // 0. TANGHULU SKEWERS (Signature Mukbang Treat)
+    if (food.category === 'tanghulu') {
+      const fruits = food.tanghuluFruits || ['strawberry', 'muscat', 'tangerine', 'strawberry'];
+      const fruitCount = fruits.length;
+      // Fruits remaining based on currentBites / totalBites
+      const visibleFruitsCount = Math.ceil(portionFraction * fruitCount);
+
+      const renderFruitItem = (fruitId: string, cx: number, cy: number, r: number) => {
+        const id = fruitId.toLowerCase();
+        if (id.includes('muscat') || id.includes('grape')) {
+          return (
+            <g>
+              <circle cx={cx} cy={cy} r={r} fill="#84cc16" stroke="#65a30d" strokeWidth="1" />
+              <circle cx={cx - 3} cy={cy - 3} r={r * 0.4} fill="#a3e635" opacity="0.8" />
+              <circle cx={cx + 2} cy={cy + 2} r="1.5" fill="#facc15" opacity="0.6" />
+            </g>
+          );
+        }
+        if (id.includes('mandarin') || id.includes('tangerine') || id.includes('orange')) {
+          return (
+            <g>
+              <ellipse cx={cx} cy={cy} rx={r * 1.15} ry={r * 0.85} fill="#f97316" stroke="#ea580c" strokeWidth="1" />
+              <ellipse cx={cx - 2} cy={cy - 2} rx={r * 0.7} ry={r * 0.45} fill="#fb923c" opacity="0.8" />
+              <line x1={cx - 5} y1={cy} x2={cx + 5} y2={cy} stroke="#fdba74" strokeWidth="1" opacity="0.7" />
+            </g>
+          );
+        }
+        if (id.includes('marshmallow')) {
+          return (
+            <g>
+              <rect x={cx - r} y={cy - r * 0.8} width={r * 2} height={r * 1.6} rx={r * 0.5} fill="#fce7f3" stroke="#f472b6" strokeWidth="1.2" />
+              <rect x={cx - r + 2} y={cy - r * 0.8 + 2} width={r * 1.6} height={r * 0.6} rx="2" fill="#ffffff" opacity="0.9" />
+              <circle cx={cx - 3} cy={cy} r="1" fill="#ec4899" />
+              <circle cx={cx + 3} cy={cy} r="1" fill="#ec4899" />
+            </g>
+          );
+        }
+        if (id.includes('tomato')) {
+          return (
+            <g>
+              <circle cx={cx} cy={cy} r={r} fill="#dc2626" stroke="#991b1b" strokeWidth="1" />
+              <circle cx={cx - 3} cy={cy - 3} r={r * 0.35} fill="#f87171" opacity="0.8" />
+              {/* Green star calyx */}
+              <polygon points={`${cx},${cy - r - 2} ${cx + 3},${cy - r + 1} ${cx - 3},${cy - r + 1}`} fill="#22c55e" />
+            </g>
+          );
+        }
+        if (id.includes('chili')) {
+          return (
+            <g>
+              <path
+                d={`M ${cx - 4},${cy - r} Q ${cx + 8},${cy} ${cx - 2},${cy + r + 3} Q ${cx - 6},${cy + 2} ${cx - 4},${cy - r} Z`}
+                fill="#ef4444"
+                stroke="#b91c1c"
+                strokeWidth="1.2"
+              />
+              <path d={`M ${cx - 4},${cy - r} Q ${cx - 6},${cy - r - 4} ${cx - 2},${cy - r - 3}`} stroke="#16a34a" strokeWidth="2.5" fill="none" />
+            </g>
+          );
+        }
+        if (id.includes('earth')) {
+          return (
+            <g>
+              <circle cx={cx} cy={cy} r={r} fill="#0284c7" stroke="#0369a1" strokeWidth="1" />
+              {/* Earth continents pattern */}
+              <circle cx={cx - 2} cy={cy - 2} r="4" fill="#22c55e" opacity="0.9" />
+              <circle cx={cx + 3} cy={cy + 3} r="3" fill="#22c55e" opacity="0.9" />
+              <circle cx={cx - 4} cy={cy + 3} r="2" fill="#22c55e" opacity="0.9" />
+            </g>
+          );
+        }
+        if (id.includes('gummy')) {
+          return (
+            <g>
+              {/* Gummy bear silhouette */}
+              <rect x={cx - r * 0.7} y={cy - r * 0.7} width={r * 1.4} height={r * 1.4} rx="4" fill="#fbbf24" stroke="#d97706" strokeWidth="1" />
+              <circle cx={cx - 4} cy={cy - r * 0.7} r="2.5" fill="#fbbf24" />
+              <circle cx={cx + 4} cy={cy - r * 0.7} r="2.5" fill="#fbbf24" />
+              <circle cx={cx - 2} cy={cy - 1} r="1" fill="#78350f" />
+              <circle cx={cx + 2} cy={cy - 1} r="1" fill="#78350f" />
+            </g>
+          );
+        }
+        if (id.includes('cheese')) {
+          return (
+            <g>
+              <rect x={cx - r * 0.8} y={cy - r * 0.8} width={r * 1.6} height={r * 1.6} rx="2" fill="#facc15" stroke="#eab308" strokeWidth="1" />
+              <circle cx={cx - 2} cy={cy - 2} r="1.5" fill="#ca8a04" opacity="0.7" />
+              <circle cx={cx + 3} cy={cy + 2} r="1.2" fill="#ca8a04" opacity="0.7" />
+            </g>
+          );
+        }
+        if (id.includes('blueberry')) {
+          return (
+            <g>
+              <circle cx={cx} cy={cy} r={r * 0.9} fill="#3b82f6" stroke="#1d4ed8" strokeWidth="1" />
+              <circle cx={cx} cy={cy - r * 0.6} r="2" fill="#1e3a8a" />
+              <circle cx={cx - 2} cy={cy - 2} r={r * 0.3} fill="#60a5fa" opacity="0.7" />
+            </g>
+          );
+        }
+        if (id.includes('kiwi')) {
+          return (
+            <g>
+              <circle cx={cx} cy={cy} r={r} fill="#65a30d" stroke="#4d7c0f" strokeWidth="1" />
+              <circle cx={cx} cy={cy} r={r * 0.4} fill="#ecfccb" />
+              <circle cx={cx - 3} cy={cy} r="0.8" fill="#1f2937" />
+              <circle cx={cx + 3} cy={cy} r="0.8" fill="#1f2937" />
+              <circle cx={cx} cy={cy - 3} r="0.8" fill="#1f2937" />
+              <circle cx={cx} cy={cy + 3} r="0.8" fill="#1f2937" />
+            </g>
+          );
+        }
+        // Default: Juicy Strawberry with Seeds & Calyx
+        return (
+          <g>
+            <path
+              d={`M ${cx},${cy - r} C ${cx + r * 1.2},${cy - r * 0.5} ${cx + r},${cy + r * 1.1} ${cx},${cy + r * 1.2} C ${cx - r},${cy + r * 1.1} ${cx - r * 1.2},${cy - r * 0.5} ${cx},${cy - r} Z`}
+              fill="#ef4444"
+              stroke="#b91c1c"
+              strokeWidth="1"
+            />
+            {/* Strawberry Seeds */}
+            <circle cx={cx - 4} cy={cy} r="1" fill="#fef08a" />
+            <circle cx={cx + 3} cy={cy + 2} r="1" fill="#fef08a" />
+            <circle cx={cx - 1} cy={cy + 6} r="1" fill="#fef08a" />
+            <circle cx={cx} cy={cy - 4} r="1" fill="#fef08a" />
+            {/* Green Leaf Calyx */}
+            <path d={`M ${cx - 6},${cy - r} Q ${cx},${cy - r - 4} ${cx + 6},${cy - r}`} stroke="#22c55e" strokeWidth="3" fill="none" strokeLinecap="round" />
+          </g>
+        );
+      };
+
+      const fruitPositions = [
+        { y: 22, r: 10 },
+        { y: 40, r: 10.5 },
+        { y: 58, r: 10.5 },
+        { y: 76, r: 10 },
+      ];
+
+      return (
+        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
+          {/* Bamboo Skewer Stick */}
+          <line x1="50" y1="10" x2="50" y2="96" stroke="#d97706" strokeWidth="3.2" strokeLinecap="round" />
+          <line x1="49" y1="10" x2="49" y2="96" stroke="#fef3c7" strokeWidth="1" strokeLinecap="round" opacity="0.6" />
+
+          {/* Fruits Stack */}
+          {fruitPositions.map((pos, idx) => {
+            const isVisible = (fruitCount - idx) <= visibleFruitsCount;
+            if (!isVisible) return null;
+            const fruitType = fruits[idx % fruits.length];
+
+            return (
+              <g key={idx}>
+                {/* 1. Base Fruit */}
+                {renderFruitItem(fruitType, 50, pos.y, pos.r)}
+
+                {/* 2. Glassy Sugar Shell Glaze Overlay */}
+                <circle
+                  cx="50"
+                  cy={pos.y}
+                  r={pos.r + 2}
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth="2.5"
+                  opacity="0.75"
+                />
+                {/* Glassy Specular Curved Highlight */}
+                <path
+                  d={`M ${43},${pos.y - pos.r * 0.7} Q ${41},${pos.y} ${44},${pos.y + pos.r * 0.5}`}
+                  stroke="#ffffff"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  fill="none"
+                  opacity="0.9"
+                />
+                <circle cx={45} cy={pos.y - pos.r * 0.5} r="2" fill="#ffffff" opacity="0.95" />
+
+                {/* Optional Topping Sparkles */}
+                {food.id.includes('gold') && (
+                  <circle cx={53} cy={pos.y + 2} r="2" fill="#facc15" />
+                )}
+                {food.id.includes('popping') && (
+                  <g>
+                    <circle cx={54} cy={pos.y - 3} r="1.5" fill="#c084fc" />
+                    <circle cx={47} cy={pos.y + 4} r="1.5" fill="#f43f5e" />
+                  </g>
+                )}
+              </g>
+            );
+          })}
+
+          {/* Dripping Crystal Sugar Droplet at bottom */}
+          {visibleFruitsCount > 0 && (
+            <path d="M 50,88 C 48,91 48,93 50,94 C 52,93 52,91 50,88 Z" fill="#ffffff" opacity="0.75" />
+          )}
+        </svg>
+      );
+    }
+
     // 1. NOODLES & PASTA
     if (food.category === 'noodles') {
       const isRedSpicy =
