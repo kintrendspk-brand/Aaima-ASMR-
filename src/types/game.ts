@@ -103,6 +103,8 @@ export interface FoodItem {
   sweetLevel?: number;
   crunchLevel?: number;
   tanghuluFruits?: string[]; // for pre-made Tanghulu items
+  dishType?: 'bucket' | 'plate' | 'bowl' | 'skewer' | 'steamer' | 'platter' | 'glass' | 'basket';
+  isHandFingerFood?: boolean;
 }
 
 export interface CharacterOutfit {
